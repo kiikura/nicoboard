@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/post.css">
+</head>
+
+<body>
+    <div class="container">
+        <form>
+            <div class="row">
+
+                <div class="col-xs-3"></div>
+                <div class="col-xs-9">
+                    <div class="input-group">
+                        <input id="msgarea1" type="text" class="msgarea form-control" placeholder="入力テキスト">
+                        <div class="input-group-btn">
+                            <button type="button" class="btn btn-default" data-toggle="dropdown"><span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li><a href="#">メニュー1</a>
+                                </li>
+                                <li><a href="#">メニュー2</a>
+                                </li>
+                                <li><a href="#">メニュー3</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li><a href="#">その他リンク</a>
+                                </li>
+                            </ul>
+                            <button type="button" class="btn btn-primary">送信</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="row">
+
+                <div class="col-xs-3"></div>
+                <div class="col-xs-7">
+
+                    <textarea id="msgarea2" class="msgarea form-control" placeholder="入力テキスト"></textarea>
+                </div>
+                <div class="col-xs-2">
+                    <div class="btn-group">
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-default" data-toggle="dropdown"><span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-right">
+                                <li><a href="#">メニュー1</a>
+                                </li>
+                                <li><a href="#">メニュー2</a>
+                                </li>
+                                <li><a href="#">メニュー3</a>
+                                </li>
+                                <li class="divider"></li>
+                                <li><a href="#">その他リンク</a>
+                                </li>
+                            </ul>
+                        </div>
+                        <button type="button" class="btn btn-primary">送信</button>
+                    </div>
+
+                </div>
+
+            </div>
+        </form>
+
+
+        <div id="msg1">:sun_with_face: hehehe</div>
+    </div>
+
+
+    <!JS-AREA-->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+
+    <script src="js/jquery.textcomplete.js"></script>
+    <script src="js/jquery.overlay.js"></script>
+    <script src="js/emojify.js"></script>
+
+    <script src="js/emojies.js"></script>
+    <script src="js/cmds.js"></script>
+
+    <script>
+        emojify.setConfig({
+            img_dir: 'img/emoji', // Directory for emoji images
+        });
+
+        $('.msgarea').textcomplete([
+            { // command
+                mentions: cmds,
+                match: /\B@(\w*)$/,
+                search: function (term, callback) {
+                    callback($.map(this.mentions, function (mention) {
+                        return mention.indexOf(term) === 0 ? mention : null;
+                    }));
+                },
+                index: 1,
+                replace: function (mention) {
+                    return '@' + mention + ' ';
+                }
+            },
+            { // emoji strategy
+                match: /\B:([\-+\w]*)$/,
+                search: function (term, callback) {
+                    callback($.map(emojies, function (emoji) {
+                        return emoji.indexOf(term) === 0 ? emoji : null;
+                    }));
+                },
+                template: function (value) {
+                    return '<img src="img/emoji/' + value + '.png"></img>' + value;
+                },
+                replace: function (value) {
+                    return ':' + value + ': ';
+                },
+                index: 1
+            }
+        ], {
+            appendTo: 'body'
+        }).overlay([
+            {
+                match: /\B@\w+/g,
+                css: {
+                    'background-color': '#d8dfea'
+                }
+            },
+            {
+                match: /\B:[\-+\w]*:/g,
+                css: {
+                    'background-color': '#ff9f3a'
+                }
+            }
+        ]);
+    </script>
+</body>
+
+</html>

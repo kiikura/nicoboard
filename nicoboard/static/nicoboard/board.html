@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/board.css">
+</head>
+
+<body>
+
+
+    <div id="naka1" class="nicoText naka"></div>
+    <div id="naka2" class="nicoText naka"></div>
+    <div id="naka3" class="nicoText naka"></div>
+    <div id="naka4" class="nicoText naka"></div>
+    <div id="naka5" class="nicoText naka"></div>
+    <div id="naka6" class="nicoText naka"></div>
+    <div id="naka7" class="nicoText naka"></div>
+    <div id="naka8" class="nicoText naka"></div>
+    <div id="naka9" class="nicoText naka"></div>
+    <div id="naka10" class="nicoText naka"></div>
+    <div id="naka11" class="nicoText naka"></div>
+    <div id="naka12" class="nicoText naka"></div>
+    <div id="naka13" class="nicoText naka"></div>
+    <div id="naka14" class="nicoText naka"></div>
+    <div id="naka15" class="nicoText naka"></div>
+    <div id="naka16" class="nicoText naka"></div>
+    <div id="naka17" class="nicoText naka"></div>
+    <div id="naka18" class="nicoText naka"></div>
+    <div id="naka19" class="nicoText naka"></div>
+    <div id="naka20" class="nicoText naka"></div>
+
+    <div id="ue1" class="nicoText ue"></div>
+    <div id="ue2" class="nicoText ue"></div>
+    <div id="ue3" class="nicoText ue"></div>
+    <div id="ue4" class="nicoText ue"></div>
+    <div id="ue5" class="nicoText ue"></div>
+
+    <div id="shita1" class="nicoText shita"></div>
+    <div id="shita2" class="nicoText shita"></div>
+    <div id="shita3" class="nicoText shita"></div>
+    <div id="shita4" class="nicoText shita"></div>
+    <div id="shita5" class="nicoText shita"></div>
+
+    <!--JS AREA-->
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="js/emojify.js"></script>
+    <script src="js/jquery.a3d.js"></script>
+    <script src="js/jquery.imgpreload.min.js"></script>
+    <script src="js/cmds.js"></script>
+
+    <script src="js/emojies.js"></script>
+    <script>
+        var START_TS = new Date();
+        //
+        emojify.setConfig({
+            img_dir: 'img/emoji', // Directory for emoji images
+        });
+        //preload
+        preloadImages = [];
+        for (var i = 0; i < emojies.length; i++) {
+            preloadImages[i] = "img/emoji/" + emojies[i] + ".png";
+        }
+        $.imgpreload(preloadImages, function () {
+            console.log("PRELOAD EMOJI COMPLETE." + (new Date() - START_TS) + "ms");
+        });
+
+
+        var nicoboard = {};
+        nicoboard.pause = false;
+        nicoboard.mute = false;
+        nicoboard.offscreenWidth = $(window).width();
+        nicoboard.offscreenHeight = $(window).height();
+
+        nicoboard.group = {};
+        nicoboard.group.naka = [];
+        nicoboard.group.ue = [];
+        nicoboard.group.shita = [];
+
+
+        nicoboard.init = function () {
+            function initSprite(queue) {
+                $(".nicoText." + queue).on("webkitAnimationEnd", function () {
+                    var removeClasses = [
+                        "active",
+                        "big",
+                        "small",
+                        "red",
+                        "pink",
+                        "orange",
+                        "yellow",
+                        "green",
+                        "cyan",
+                        "blue",
+                        "purple",
+                        "black",
+                        "white2",
+                        "niconicowhite",
+                        "red2",
+                        "truered",
+                        "pink2",
+                        "orange2",
+                        "passionorange",
+                        "yellow2",
+                        "madyellow",
+                        "green2",
+                        "elementalgreen",
+                        "cyan2",
+                        "blue2",
+                        "marineblue",
+                        "purple2",
+                        "nobleviolet",
+                        "black2",
+                    ];
+                    var $sprite = $(this);
+                    removeClasses.forEach(function (k, idx) {
+                        $sprite.removeClass(k)
+                    });
+                    this.style.animation = null;
+                }).each(function (idx, el) {
+                    nicoboard.group[queue].push($(el));
+                });
+            }
+            initSprite("naka");
+            initSprite("shita");
+            initSprite("ue");
+        };
+
+        nicoboard.pop = function (queue) {
+            queue = queue || "naka";
+            var select;
+            nicoboard.group[queue].some(function (nico, idx) {
+                if (!nico.hasClass("active")) {
+                    select = nico;
+                    return true;
+                }
+            });
+            return select;
+        };
+        nicoboard.activeSprites = function (queue) {
+            queue = queue || "naka";
+            var sprites = [];
+            $.each(nicoboard.group[queue], function (idx, nico) {
+                if (nico.hasClass("active")) {
+                    sprites.push(nico);
+                }
+            });
+            return sprites;
+        };
+        nicoboard.rect = function (sprite) {
+                var p = sprite.position();
+                return {
+                    x: p.left,
+                    y: p.top,
+                    width: sprite.width(),
+                    height: sprite.height(),
+                }
+            }
+            /**
+             *	他のコメントとの衝突判定
+             **/
+        nicoboard.collision = function (tx, o) {
+            var txd = this.rect(tx),
+                od = this.rect(o);
+
+            // Y座標が合わないなら絶対衝突しない
+            if (od.y + od.height <= txd.y || od.y >= txd.y + txd.height) {
+                return false;
+            }
+
+            if (this.fixed) {
+                return true;
+            } else {
+                var ajust = 50;
+                // 左にあるやつの右端開始よりも右にあるやつの左端開始のほうが早いなら、衝突する
+                if (od.x + od.width + ajust >= txd.x) {
+                    //console.log(od, txd);
+                    return true;
+                }
+                // 左にあるやつの右端終了よりも右にあるやつの左端終了のほうが早いなら、衝突する
+                //この判定むついので省略（スピードが長さによって変わるので）追いついちゃうのはしゃあない
+                //if (lt.endR >= rt.endL)     return true;
+
+            }
+
+            return false;
+        };
+        nicoboard.checkCollision = function (tx, queue) {
+            var rh = this.offscreenHeight - tx.height(),
+                o;
+            queue = queue || "naka"
+            var actives = this.activeSprites(queue);
+            if (queue != "shita") {
+
+                for (var i = 0, len = actives.length; i < len; i++) {
+                    o = actives[i];
+
+                    if (o === tx) continue; //自分自身との判定はスキップする
+
+                    //他の文字との衝突があったら下にずらしていく
+                    if (this.collision(tx, o)) {
+
+                        tx.css("top", (o.position().top + o.height() + 1));
+                        // 画面内に入りきらなかったらランダム配置
+                        if (tx.position().top > rh) {
+                            tx.css("top", (Math.floor(Math.random() * rh)));
+                            return;
+                        } else {
+                            // ずらした後は再度全チェックするのを忘れずに(再帰)
+                            this.checkCollision(tx, queue);
+                            return
+                        }
+                    }
+                }
+            } else {
+                for (var i = 0, len = actives.length; i < len; i++) {
+                    o = actives[i];
+
+                    if (o === tx) continue; //自分自身との判定はスキップする
+
+                    //他の文字との衝突があったら上にずらしていく
+                    if (this.collision(tx, o)) {
+
+                        tx.css("top", (o.position().top - tx.height() - 1));
+                        // 画面内に入りきらなかったらランダム配置
+                        if (tx.position().top > rh) {
+                            tx.css("top", (Math.floor(Math.random() * rh)));
+                            return;
+                        } else {
+                            // ずらした後は再度全チェックするのを忘れずに(再帰)
+                            this.checkCollision(tx, queue);
+                            return
+                        }
+                    }
+                }
+            }
+        };
+
+
+
+        nicoboard.addMsg = function (nicomsg) {
+            var self = this;
+            queue = nicomsg.queue || "naka";
+
+            if (nicomsg.deley) {
+                setTimeout($.proxy(function () {
+                    delete nicomsg.deley
+                    nicoboard.addMsg(nicomsg);
+                }, this), nicomsg.deley * 1000);
+                return;
+            }
+
+            var t = self.pop(queue);
+            if (!t) {
+                //空きスプライトがない場合は1秒後
+                setTimeout($.proxy(function () {
+                    nicoboard.addMsg(nicomsg);
+                }, this), 1000);
+                return;
+            }
+
+            //メッセージ初期化
+            t.text(nicomsg.msg);
+            emojify.run(t.get(0));
+
+            //サイズ
+            if (nicomsg.size) {
+                t.addClass(nicomsg.size);
+            }
+            //色
+            if (nicomsg.color) {
+                t.addClass(nicomsg.color);
+            }
+
+            //座標初期化
+            if (queue === "naka") {
+                t.css({
+                    left: nicoboard.offscreenWidth,
+                    top: 0
+                });
+            } else if (queue === "ue") {
+                t.css({
+                    left: (nicoboard.offscreenWidth - t.width()) / 2,
+                    top: 0
+                });
+            } else {
+                t.css({
+                    left: (nicoboard.offscreenWidth - t.width()) / 2,
+                    top: nicoboard.offscreenHeight - t.height()
+                });
+            }
+            //Y座標判定
+            this.checkCollision(t, queue);
+
+            if (queue === "naka") {
+                this.animateMarque(t);
+            } else {
+                this.animateFade(t);
+            }
+            t.addClass("active");
+
+        };
+        nicoboard.animateMarque = function (t) {
+            var a3d_marque = {
+                frames: {
+                    "0%": {
+                        trans: {
+                            "x": "0px"
+                        }
+                    },
+                    "100%": {
+                        trans: {
+                            "x": "-" + (nicoboard.offscreenWidth + t.width()) + "px",
+                        }
+                    }
+                },
+                config: {
+                    duration: "4s",
+                    state: "running",
+                    easing: "liner"
+                }
+            };
+            t.a3d(a3d_marque);
+        };
+
+        nicoboard.animateFade = function (t) {
+            var a3d_fade = {
+                frames: {
+                    "0%": {
+                        styles: {
+                            "opacity": 0
+                        }
+                    },
+                    "30%": {
+                        styles: {
+                            "opacity": 1,
+                        }
+                    },
+                    "100%": {
+                        styles: {
+                            "opacity": 0,
+                        }
+                    }
+                },
+                config: {
+                    duration: "3s",
+                    state: "running",
+                    easing: "liner"
+                }
+            };
+            t.a3d(a3d_fade);
+        };
+
+        nicoboard.parse = function (msg) {
+            var nicomsg = {};
+            nicomsg.msg = msg.replace(/\B@(\w+)/g, function (m, g) {
+                var cmd = cmdsmeta[g];
+                if (cmd) {
+                    nicomsg[cmd.type] = cmd.value ? cmd.parse(g) : g
+                    return "";
+                }
+                return m;
+            });
+            nicomsg.msg = nicomsg.msg.replace(/\B@(\d+)/g, function (m, g) {
+                nicomsg.deley = parseInt(g);
+                return "";
+            });
+
+            return nicomsg;
+        };
+        nicoboard.handleMsg = function (msgchunk) {
+            msgs = msgchunk.split("\n");
+            for (var i = 0; i < msgs.length; i++) {
+                if (msgs[i].match(/^\s+$/)) continue;
+                nicomsg = this.parse(msgs[i]);
+                this.addMsg(nicomsg);
+            }
+        }
+        nicoboard.test = function () {
+            var msg = "@orange おおおおおおおーーー :" + emojies[Math.round(Math.random() * 800)] + ": いいねー";
+
+            var queues = ["naka", "shita", "ue"]
+            var nicomsg = {
+                "msg": msg,
+                "size": "big",
+                "color": "pink",
+                "queue": queues[Math.floor(Math.random() * 3)],
+                "deley": 5,
+            }
+
+            this.addMsg(nicomsg);
+        };
+
+
+
+
+        // Stomp.js boilerplate
+        var ws = new SockJS('http://localhost:15674/stomp');
+        var client = Stomp.over(ws);
+
+        // SockJS does not support heart-beat: disable heart-beats
+        client.heartbeat.outgoing = 0;
+        client.heartbeat.incoming = 0;
+
+
+        var on_connect = function (x) {
+            id = client.subscribe("/topic/hackday", function (d) {
+                nicoboard.handleMsg(d.body);
+            });
+        };
+        var on_error = function () {
+            console.log('error');
+        };
+        client.connect('guest', 'guest', on_connect, on_error, '/');
+
+
+
+
+
+
+
+
+
+
+
+        $("body").on("keydown", function (evt) {
+            if (evt.keyCode === "P".charCodeAt(0)) {
+                nicoboard.pause = !nocoboard.pause;
+            }
+            if (evt.keyCode === "M".charCodeAt(0)) {
+                nicoboard.mute = !nocoboard.mute;
+            }
+            if (evt.keyCode === "T".charCodeAt(0)) {
+                nicoboard.test();
+            }
+
+        })
+        $(document).on("ready", function () {
+            nicoboard.init();
+        });
+        $(window).on("resize", function () {
+            console.log($(window).width(), $(window).height());
+            nicoboard.offscreenWidth = $(window).width();
+            nicoboard.offscreenHeight = $(window).height();
+        })
+    </script>
+</body>
+
+</html>
