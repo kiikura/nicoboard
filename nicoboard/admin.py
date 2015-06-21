@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
 from django.contrib import admin
 
-# Register your models here.
+
+from .models import Board, Message
+
+
+admin.site.register(Board)
+admin.site.register(Message)

@@ -8,5 +8,7 @@ urlpatterns = patterns('',
     # url(r'^$', 'nicopresite.views.home', name='home'),
     # url(r'^blog/', include('blog.urls')),
 
+    url(r'^nico/', include('nicoboard.urls')),
+
     url(r'^admin/', include(admin.site.urls)),
 )

@@ -5,45 +5,32 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/post.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}nicoboard/css/board.css">
+    <link rel="stylesheet" href="{{ STATIC_URL }}nicoboard/css/nico.css">
 </head>
 
 <body>
     <div class="container">
-        <form>
+        <form id="cmdform">
             <div class="row">
-
-                <div class="col-xs-3"></div>
-                <div class="col-xs-9">
-                    <div class="input-group">
-                        <input id="msgarea1" type="text" class="msgarea form-control" placeholder="入力テキスト">
-                        <div class="input-group-btn">
-                            <button type="button" class="btn btn-default" data-toggle="dropdown"><span class="caret"></span>
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-right">
-                                <li><a href="#">メニュー1</a>
-                                </li>
-                                <li><a href="#">メニュー2</a>
-                                </li>
-                                <li><a href="#">メニュー3</a>
-                                </li>
-                                <li class="divider"></li>
-                                <li><a href="#">その他リンク</a>
-                                </li>
-                            </ul>
-                            <button type="button" class="btn btn-primary">送信</button>
-                        </div>
-                    </div>
+                <div class="input-group">
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default">■</button>
+                    </span>
+                    <input type="text" class="inputarea form-control">
+                    <span class="input-group-btn">
+                        <button id="post" type="submit" class="btn btn-primary">送信</button>
+                        <button type="button" class="btn btn-default">オプション</button>
+                    </span>
                 </div>
-
             </div>
-
+            {%comment%}
             <div class="row">
 
                 <div class="col-xs-3"></div>
                 <div class="col-xs-7">
 
-                    <textarea id="msgarea2" class="msgarea form-control" placeholder="入力テキスト"></textarea>
+                    <textarea id="msgarea2" class="inputarea form-control" placeholder="入力テキスト"></textarea>
                 </div>
                 <div class="col-xs-2">
                     <div class="btn-group">
@@ -64,10 +51,9 @@
                         </div>
                         <button type="button" class="btn btn-primary">送信</button>
                     </div>
-
                 </div>
-
             </div>
+            {%endcomment%}
         </form>
 
 
@@ -81,19 +67,19 @@
     <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
-    <script src="js/jquery.textcomplete.js"></script>
-    <script src="js/jquery.overlay.js"></script>
-    <script src="js/emojify.js"></script>
+    <script src="{{ STATIC_URL }}nicoboard/js/jquery.textcomplete.js"></script>
+    <script src="{{ STATIC_URL }}nicoboard/js/jquery.overlay.js"></script>
+    <script src="{{ STATIC_URL }}nicoboard/js/emojify.js"></script>
 
-    <script src="js/emojies.js"></script>
-    <script src="js/cmds.js"></script>
+    <script src="{{ STATIC_URL }}nicoboard/js/emojies.js"></script>
+    <script src="{{ STATIC_URL }}nicoboard/js/cmds.js"></script>
 
     <script>
         emojify.setConfig({
-            img_dir: 'img/emoji', // Directory for emoji images
+            img_dir: '{{ STATIC_URL }}nicoboard/img/emoji', // Directory for emoji images
         });
 
-        $('.msgarea').textcomplete([
+        $('.inputarea').textcomplete([
             { // command
                 mentions: cmds,
                 match: /\B@(\w*)$/,
@@ -115,7 +101,7 @@
                     }));
                 },
                 template: function (value) {
-                    return '<img src="img/emoji/' + value + '.png"></img>' + value;
+                    return '<img src="{{STATIC_URL}}nicoboard/img/emoji/' + value + '.png"></img>' + value;
                 },
                 replace: function (value) {
                     return ':' + value + ': ';
@@ -138,6 +124,53 @@
                 }
             }
         ]);
+
+        //-----------------------------
+
+        function postMessageHandler(){
+            var msg = $(".inputarea").val();
+            postMessage(msg);
+            $(".inputarea").val("");
+            return false;
+        }
+        function postMessage(msg){
+            var pdata = {
+                        "board": "hackday",
+                        "body": msg
+                    }
+            return $.ajax({
+                "url": "/nico/api/msgs/",
+                "type": "POST",
+                "data": pdata
+            })
+        }
+
+        $("#cmdform").submit(function(){
+            console.log("submit");
+            return postMessageHandler();
+        });
+
+        //-----------------------------
+
+        // Stomp.js boilerplate
+        var ws = new SockJS('http://localhost:15674/stomp');
+        var client = Stomp.over(ws);
+
+        // SockJS does not support heart-beat: disable heart-beats
+        client.heartbeat.outgoing = 0;
+        client.heartbeat.incoming = 0;
+
+
+        var on_connect = function (x) {
+            id = client.subscribe("/topic/hackday", function (d) {
+                nicoboard.handleMsg(d.body);
+            });
+        };
+        var on_error = function () {
+            console.log('error');
+        };
+        client.connect('guest', 'guest', on_connect, on_error, '/');
+
     </script>
 </body>
 

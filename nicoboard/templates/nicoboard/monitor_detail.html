@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
-    <link rel="stylesheet" href="css/board.css">
+    <link rel="stylesheet" href="{{STATIC_URL}}nicoboard/css/monitor.css">
+    <link rel="stylesheet" href="{{STATIC_URL}}nicoboard/css/nico.css">
 </head>
 
 <body>
@@ -49,22 +50,22 @@
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/sockjs-client/0.3.4/sockjs.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-    <script src="js/emojify.js"></script>
-    <script src="js/jquery.a3d.js"></script>
-    <script src="js/jquery.imgpreload.min.js"></script>
-    <script src="js/cmds.js"></script>
+    <script src="{{STATIC_URL}}nicoboard/js/emojify.js"></script>
+    <script src="{{STATIC_URL}}nicoboard/js/jquery.a3d.js"></script>
+    <script src="{{STATIC_URL}}nicoboard/js/jquery.imgpreload.min.js"></script>
+    <script src="{{STATIC_URL}}nicoboard/js/cmds.js"></script>
 
-    <script src="js/emojies.js"></script>
+    <script src="{{STATIC_URL}}nicoboard/js/emojies.js"></script>
     <script>
         var START_TS = new Date();
         //
         emojify.setConfig({
-            img_dir: 'img/emoji', // Directory for emoji images
+            img_dir: '{{STATIC_URL}}nicoboard/img/emoji', // Directory for emoji images
         });
         //preload
         preloadImages = [];
         for (var i = 0; i < emojies.length; i++) {
-            preloadImages[i] = "img/emoji/" + emojies[i] + ".png";
+            preloadImages[i] = "{{STATIC_URL}}nicoboard/img/emoji/" + emojies[i] + ".png";
         }
         $.imgpreload(preloadImages, function () {
             console.log("PRELOAD EMOJI COMPLETE." + (new Date() - START_TS) + "ms");
@@ -390,7 +391,7 @@
                 "size": "big",
                 "color": "pink",
                 "queue": queues[Math.floor(Math.random() * 3)],
-                "deley": 5,
+                "deley": 0,
             }
 
             this.addMsg(nicomsg);
