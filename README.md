@@ -58,6 +58,8 @@ rate(声の速さ)とpitch（声の高さ）でも変更可能。ランダムに
 @speak-ja 「Google 日本人」音声で読み上げ
 @speak-en 「Google US English」「Google UK English Male」「Google UK English Female」でランダム。
 
+※音声発話はChromeのやつだと遅延が大きい及び音源の自由度が低いためElectron版での実装を優先する。
+
 
 - 表示タイミング
 @[数値] 秒数で指定。遅延タイミングで表示。
@@ -113,6 +115,10 @@ http://www.emoji-cheat-sheet.com/
 jquery-textcomplete
 http://yuku-t.com/jquery-textcomplete/
 
+#### EmojiOne
+
+Slackとの連携を考慮するとどこでも同じemojiが使えるという観点でEmojiOneがいい。  
+こちらへの差し替えを検討する。
 
 ### Twitter API を調べる
 
@@ -127,5 +133,13 @@ Twitter Dev Center: https://dev.twitter.com/
 
 Pythonの例
 http://qiita.com/mima_ita/items/ecdf7de2fe619378beee
+
+
+### Slack APIを調べる
+
+Twitter APIと同じ常時コネクション貼り続ける系のリアルタイムＡＰＩがあるので同じ仕組みで行ける。
+
+投稿側はボットフレームワークを使おう
+
 
 
